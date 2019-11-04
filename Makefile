@@ -1,8 +1,11 @@
+SFMLFLAGS = -lsfml-graphics -lsfml-window -lsfml-system
+EIGENFLAGS = -I/usr/include/eigen3/
+
 
 all: main
 
-main: main.cc perlin.o texture.o
-	g++ main.cc perlin.o -lm -lGL -lGLU -lX11 -o test
+main: main.cc
+	g++ main.cc $(SFMLFLAGS) $(EIGENFLAGS) -o test
 
 perlin.o: perlin.cc
 	g++ -c perlin.cc
