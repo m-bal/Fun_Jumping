@@ -10,7 +10,7 @@ uniform float time;
 
 float SDF_Sphere(in vec3 pos){
 	
-	vec4 sphere = vec4(0,0,-2, .25);
+	vec4 sphere = vec4(0,0, 0, .25);
 	float sDist = length(pos-sphere.xyz)-sphere.w;
 
 	return sDist;
@@ -19,7 +19,7 @@ float SDF_Sphere(in vec3 pos){
 This is will be my ground plane 
 */
 float SDF_Plane(in vec3 pos){
-	float planeDist = pos.y+ 0.25;
+	float planeDist = pos.y + 0.25;
 	
 	return planeDist;
 }
@@ -40,7 +40,27 @@ float RAY_Marcher(in vec3 co, in vec3 cd){
 	
 	return d;
 }
+/*
+float softshadow( in vec3 ro, in vec3 rd, float mint, float maxt, float k )
+{
+    float res = 1.0;
+    for( float t=mint; t<maxt; )
+    {
+        float h = map(ro + rd*t);
+        if( h<0.001 )
+            return 0.0;
+        res = min( res, k*h/t );
+        t += h;
+    }
+    return res;d
+}*/
+vec3 calcNormals(in vec3 p){
+	const float eps = .00001;
+	vec2 h = vec2(eps, 0);
 
+	vec3 ret = vec3(SDF_Plane(p+h.xyy)-SDF_Plane(p-h.xyy),SDF_Sphere(p+h.yxy)-SDF_Sphere(p-h.yxy),SDF_Sphere(p+h.yyx)-SDF_Sphere(p-h.yyx));
+	return normalize(ret);
+}
 
 
 void main(){
@@ -53,14 +73,19 @@ void main(){
 	vec3 cam_d = normalize(vec3(uv.x, uv.y, -2));
 	
 	
-	vec3 col = vec3(0);
+	vec3 col = vec3(.53, .80, .92);
 	float p = RAY_Marcher(cam_o, cam_d);
 	
 	
 	if( p < MAX_DIST){
-		vec3 sun = vec3(0, 1, 0);
-		
-		col = vec3(1);
+		vec3 pos = cam_o+p*cam_d;
+		vec3 nor = calcNormals(pos);
+
+		vec3 sun = vec3(1, 0, 1);
+		vec3 sun_dir = normalize(sun);
+		float diff = clamp(dot(sun_dir, nor), 0, 1);
+
+		col = vec3(.92, .78, .68)*diff;
 	}
 	
 		
