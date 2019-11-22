@@ -3,3 +3,4 @@ test
 a.out
 x.x
 *.gch
+.vscode

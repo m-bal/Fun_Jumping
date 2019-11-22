@@ -7,9 +7,6 @@ sf::Glsl::Vec2 res(800, 450);
 
 
 int main(){
-
-	
-
 	if(!sf::Shader::isAvailable()){
 		std::cerr << "NO GRAPHICS CARD!!" << std::endl;
 		return 1;
