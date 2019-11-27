@@ -9,15 +9,15 @@ uniform vec3 iDebug;
 uniform float time;
 
 float SDF_Sphere(in vec3 pos){
-	vec4 sphere = vec4(0,abs(sin(5*time)/(time)),0,.25);
-
+	vec4 sphere = vec4(0,abs(5*sin(time)/time),-log(time/2),0.25);
 	return length(pos-sphere.xyz)-sphere.w;
 }
 /*
 This is will be my ground plane 
 */
 float SDF_Plane(in vec3 pos){
-	float planeDist = pos.y + 0.25;
+	//float planeDist = pos.y + 0.25;
+	float planeDist = pos.y+(cos(pos.x)*.25);
 	return planeDist;
 }
 
@@ -71,18 +71,21 @@ void main(){
 	vec3 cam_d = normalize(vec3(uv, -2));
 	
 	
-	vec3 col = 0.5 + 0.5*cos(time+uv.xyx+vec3(0,2,4));
+	vec3 col = 0.5 + 0.5*cos(time+uv.xyy);
 
 	float p = RAY_Marcher(cam_o, cam_d);
 	if (p < MAX_DIST) {
 		vec3 pos = cam_o + p*cam_d;
 		vec3 nor = calcNormals(pos);
-		vec3 sun = vec3(2, 1, 1);
+		vec3 sun = vec3(cos(time), 1, 1);
 		vec3 sun_dir = normalize(sun);
 		float diff = clamp(dot(sun_dir, nor), 0, 1);
 		float sshadow = softshadow(pos+nor*0.001, sun_dir, 0.1, 3, 8);
 		//col = 1-cos(sin(time)+uv.xyx+vec3(0,2,4))*diff*sshadow;
+		vec3 check = sin(time)*cos(time)*uv.xyx;
 		col = vec3(.92, .88, .68)*diff*sshadow;
+		//col += check;
+		
 	}
 	
 		
