@@ -8,9 +8,19 @@ uniform vec2 iResolution;
 uniform vec3 iDebug;
 uniform float time;
 
+float smoothmin(float f1, float f2, float k)
+{
+	float h = max( k-abs(f1-f2), 0.0 )/k;
+    return min( f1, f2 ) - h*h*k*(1.0/4.0);
+}
+
 float SDF_Sphere(in vec3 pos){
-	vec4 sphere = vec4(0,abs(5*sin(time)/time),-log(time/2),0.25);
-	return length(pos-sphere.xyz)-sphere.w;
+	vec4 s1 = vec4(sin(time),0,0,0.25);
+	vec4 s2 = vec4(sin(-time),0,0,0.25);
+	float dists1 = length(pos-s1.xyz)-s1.w;
+	float dists2 = length(pos-s2.xyz)-s2.w;
+	return smoothmin(dists1, dists2, 1);
+
 }
 /*
 This is will be my ground plane 
