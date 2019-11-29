@@ -8,18 +8,21 @@ uniform vec2 iResolution;
 uniform vec3 iDebug;
 uniform float time;
 
+
+//function credit goes to 
 float smoothmin(float f1, float f2, float k)
 {
-	float h = max( k-abs(f1-f2), 0.0 )/k;
-    return min( f1, f2 ) - h*h*k*(1.0/4.0);
+    float h = max( k-abs(f1-f2), 0.0 )/k;
+    return min( f1, f2 ) - h*h*h*k*(1.0/6.0);
 }
 
 float SDF_Sphere(in vec3 pos){
 	vec4 s1 = vec4(sin(time),0,0,0.25);
-	vec4 s2 = vec4(sin(-time),0,0,0.25);
+	vec4 s2 = vec4(cos(time),abs(cos(time))-.25,0,0.25);
+
 	float dists1 = length(pos-s1.xyz)-s1.w;
 	float dists2 = length(pos-s2.xyz)-s2.w;
-	return smoothmin(dists1, dists2, 1);
+	return smoothmin(dists1, dists2, .8);
 
 }
 /*
@@ -32,7 +35,7 @@ float SDF_Plane(in vec3 pos){
 }
 
 float map(in vec3 pos){
-	return min(SDF_Sphere(pos), SDF_Plane(pos));
+	return smoothmin(SDF_Sphere(pos), SDF_Plane(pos), 1);
 }
 
 float RAY_Marcher(in vec3 co, in vec3 cd){
