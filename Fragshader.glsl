@@ -1,4 +1,4 @@
-#version 120
+#version 130
 #define MIN_DIST 0.0001
 #define MAX_DIST 20
 #define MAX_STEPS 100
