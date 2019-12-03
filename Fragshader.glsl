@@ -17,10 +17,10 @@ float smoothmin(float f1, float f2, float k)
 }
 
 float SDF_Sphere(in vec3 pos){
-	vec4 s1 = vec4(0,(sin(time))-.5,0,0.50);
-	vec4 s2 = vec4(0,(sin(time))+.5,0,0.35);
+	vec4 s1 = vec4(0,(sin(time)-.5),0,0.50);
+	vec4 s2 = vec4(0,(sin(time)+.5), 0,0.35);
 	vec3 mpos = vec3(mod(abs(pos.x), 3.0)-1.5, pos.y, mod(pos.z+1.5, 2)-1.5);
-	float dists1 = length(mpos-s1.xyz)-s1.w;
+	float dists1 = length(mpos-s1.yyz)-s1.w;
 	float dists2 = length(mpos-s2.xyz)-s2.w;
 	return smoothmin(dists1, dists2, 1);
 
@@ -83,8 +83,11 @@ void main(){
 	//this is the point we are shooting to --V
 	vec3 cam_d = normalize(vec3(uv, 1));
 	
+	vec3 col = vec3(.529, .808, .902);
+	//col *=smoothstep(-.2, .2, sin(uv.x)*sin(uv.x));//*mix(.1,-.1, sin(uv.x)*sin(uv.y));
 	
-	vec3 col = .7 + 0.7*tan(uv.yyy*uv.xyx)+sin(time);
+	
+	//vec3 col = .7 + 0.7*tan(uv.yyy*uv.xyx)+sin(time);
 
 	float p = RAY_Marcher(cam_o, cam_d);
 	if (p < MAX_DIST) {
@@ -94,11 +97,13 @@ void main(){
 		vec3 sun_dir = normalize(sun);
 		float diff = clamp(dot(sun_dir, nor), 0, 1);
 		float sshadow = softshadow(pos+nor*0.001, sun_dir, 0.1, 3, 8);
+
 		//col = 1-cos(sin(time)+uv.xyx+vec3(0,2,4))*diff*sshadow;
 		//checkered ground
-		float check = smoothstep(.2,-.2, sin(pos.z)*sin(pos.x)+sin(pos.z)*sin(pos.x));
-		col = vec3(1, 1, 1)*diff*sshadow;
-		col += vec3(.1,.1,.1)*check;
+		float check = smoothstep(.1,-.1, cos(pos.z*time)+sin(pos.x*time)*sin(pos.y));
+		col = vec3(0.4, 0.8, 0.3)*diff*sshadow;
+		col += vec3(0.5, 0.9, 0.6)*check*.15;
+
 		
 	}
 	
