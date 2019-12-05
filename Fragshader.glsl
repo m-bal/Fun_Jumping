@@ -16,6 +16,12 @@ float smoothmin(float f1, float f2, float k)
     return min( f1, f2 ) - h*h*h*k*(1.0/6);
 }
 
+mat2 rotationMatrix(float ang){
+	mat2 ret = mat2(sin(ang), cos(ang), 
+					-sin(ang), cos(ang));
+	return ret;
+}
+
 float SDF_Sphere(in vec3 pos){
 	vec4 s1 = vec4(0,(sin(time)-.5),0,0.50);
 	vec4 s2 = vec4(0,(sin(time)+.5), 0,0.35);
@@ -24,6 +30,15 @@ float SDF_Sphere(in vec3 pos){
 	float dists2 = length(mpos-s2.xyz)-s2.w;
 	return smoothmin(dists1, dists2, 1);
 
+}
+float SDF_RoundedBox(in vec3 pos, in vec3 b){
+  vec3 q = abs(pos) - b;
+  return length(max(q,0.0)) + min(max(q.x,max(q.y,q.z)),0.0) - .05;
+}
+
+float SDF_Cylinder(in vec3 pos){
+	vec3 c = vec3(0, .1, .1);
+	return length(pos.xz-c.xy)-c.z;
 }
 /*
 This is will be my ground plane 
@@ -35,7 +50,16 @@ float SDF_Plane(in vec3 pos){
 }
 
 float map(in vec3 pos){
-	return smoothmin(SDF_Sphere(pos), SDF_Plane(pos), 1);
+	float a = smoothmin(SDF_Sphere(pos), SDF_Plane(pos), 1);
+	pos.z -= 4;
+	float b = smoothmin(SDF_Cylinder(pos), a, 1);
+
+	float c = min(SDF_RoundedBox(pos, vec3(.25, .25, .25)), b);
+	pos.z -= .20;
+	pos.y -= 8;
+	pos.x -= 1;
+
+	return min(SDF_RoundedBox(pos, vec3(1,1, .0001))+sin(5.4*pos.y*pos.x+time*3)*.05, b);
 }
 
 float RAY_Marcher(in vec3 co, in vec3 cd){
@@ -60,7 +84,7 @@ float softshadow( in vec3 ro, in vec3 rd, float mint, float maxt, float k )
     for( float t=mint; t<maxt; )
     {
         float h = map(ro + rd*t);
-        if( h<0.001 )
+        if( h<0.0001 )
             return 0.0;
         res = min( res, k*h/t );
         t += h;
@@ -79,7 +103,7 @@ void main(){
 	vec2 uv = ((2*gl_FragCoord.xy)-iResolution.xy)/iResolution.xy;
 	
 	//camera origin works the same way as opengl coordinates 
-	vec3 cam_o = vec3(0,3,-3+time);
+	vec3 cam_o = vec3(0,4,-2);
 	//this is the point we are shooting to --V
 	vec3 cam_d = normalize(vec3(uv, 1));
 	
@@ -93,7 +117,7 @@ void main(){
 	if (p < MAX_DIST) {
 		vec3 pos = cam_o + p*cam_d;
 		vec3 nor = calcNormals(pos);
-		vec3 sun = vec3(2, 4, 0);
+		vec3 sun = vec3(cos(time), 5, sin(time));
 		vec3 sun_dir = normalize(sun);
 		float diff = clamp(dot(sun_dir, nor), 0, 1);
 		float sshadow = softshadow(pos+nor*0.001, sun_dir, 0.1, 3, 8);
